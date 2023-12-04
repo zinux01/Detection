@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../test/flask-cv/templates"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "templates"
+	}
+}

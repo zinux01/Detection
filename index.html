@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAJAM</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Deteksi Senjata</h1>
+    </header>
+    <div class="container">
+        <div class="top-section">
+            <video id="videoElement" autoplay playsinline ></video>
+        </div>
+        <div class="bottom-section">
+            <button id="mulaiDeteksi">Deteksi</button>
+        <button id="resetCamera">Mulai Ulang</button>
+        </div>
+    </div>
+
+    <div class="profile">
+        <img src="static/images/logo.png" alt="Foto Profil">
+        <h2>Defi Afrilia</h2>
+        <p>S1 Sistem Informasi STMIK jakarta STI&K</p>
+    </div>
+
+    <script>
+        let videoStream; // Untuk menyimpan stream video
+
+        async function setupWebcam() {
+        const videoElement = document.getElementById('videoElement');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+                videoStream = stream; // Simpan stream video ke variabel
+            } catch (error) {
+                console.error('Error accessing webcam:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupWebcam(); // Pastikan elemen video telah dimuat sebelum mengaksesnya
+            // Menambahkan event listener dan kode lainnya di sini
+        });
+
+        const startAbsensiButton = document.getElementById('mulaiDeteksi');
+        startAbsensiButton.addEventListener('click', async function(){
+            const videoElement = document.getElementById('videoElement');
+            const canvas = document.createElement('canvas');
+            canvas.width = videoElement.videoWidth;
+            canvas.height = videoElement.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+            // Menampilkan gambar yang diambil pada bekas tampilan kamera
+            videoElement.style.display = 'none'; // Sembunyikan video
+            const imageElement = document.createElement('img');
+            const imageDataURL = canvas.toDataURL('image/jpeg');
+            imageElement.src = imageDataURL;
+            imageElement.style.borderRadius = '5px';
+            videoElement.parentNode.replaceChild(imageElement, videoElement);
+            
+            // Ambil data gambar sebagai blob
+            canvas.toBlob(async function(blob) {
+                // Buat objek FormData dan tambahkan blob gambar ke dalamnya
+                const formData = new FormData();
+                formData.append('image', blob);
+
+                // Kirim permintaan POST dengan FormData yang berisi blob gambar
+                const response = await fetch('/startDetection', { method: 'POST',body: formData });
+                const data = await response.json();
+                const gambar = data.image_url;
+                // Ubah sumber gambar pada elemen <img> dengan hasil deteksi dari server Flask
+                imageElement.src = gambar;
+            }, 'image/jpeg');
+
+            // Hapus file-file dalam folder "Testing"
+            //await fetch('/deleteTestingFiles', { method: 'POST' });
+        });
+        document.getElementById("resetCamera").addEventListener("click", function() {
+            location.reload();
+        });
+    </script>
+</body>
+</html>
